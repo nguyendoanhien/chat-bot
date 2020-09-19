@@ -1,25 +1,39 @@
 <?php
- $token = "1263823155:AAF7VbdQ9jg04P-sIEKiyVnZ0Bd2QEqVGm4";
-$user_id = "-409220601";
+$BOT_TOKEN = "1055615736:AAGSMo9WhyvMEqXl0p744WZ_mpRWwZJ70Qs";
 
-$request_params = [
-    'chat_id' => $user_id,
-    'text' => 'Bạn là ai dị?'
-];
-$request_params_getchat = [
-    'chat_id' => $user_id,
-    'text' => 'Bạn là ai dị?'
-];
-$request_url = 'https://api.telegram.org/bot' . $token;
-header('Content-Type: application/json');
+$update = file_get_contents('php://input');
+$update = json_decode($update, true);
+$userChatId = $update["message"]["from"]["id"]?$update["message"]["from"]["id"]:null;
 
-$getUpdates = $request_url . '/getUpdates';
-echo json_encode(json_decode(file_get_contents($getUpdates)), JSON_PRETTY_PRINT);
+if($userChatId){
+    $userMessage = $update["message"]["text"]?$update["message"]["text"]:"Nothing";
+    $firstName = $update["message"]["from"]["first_name"]?$update["message"]["from"]["first_name"]:"N/A";
+    $lastName = $update["message"]["from"]["last_name"]?$update["message"]["from"]["last_name"]:"N/A";
+    $fullName = $firstName." ".$lastName;
+    $replyMsg = "Hello ".$fullName."\nYou said: ".$userMessage;
 
-$getChat = $request_url . '/getChat?' . http_build_query($request_params_getchat);
-console.log('hello from Hien laptop');
-echo json_encode(json_decode(file_get_contents($getChat)), JSON_PRETTY_PRINT);
 
-//$newMessage =
+    $parameters = array(
+        "chat_id" => $userChatId,
+        "text" => $replyMsg,
+        "parseMode" => "html"
+    );
 
-?>
+    send("sendMessage", $parameters);
+}
+
+function send($method, $data){
+    global $BOT_TOKEN;
+    $url = "https://api.telegram.org/bot$BOT_TOKEN/$method";
+
+    if(!$curld = curl_init()){
+        exit;
+    }
+    curl_setopt($curld, CURLOPT_POST, true);
+    curl_setopt($curld, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($curld, CURLOPT_URL, $url);
+    curl_setopt($curld, CURLOPT_RETURNTRANSFER, true);
+    $output = curl_exec($curld);
+    curl_close($curld);
+    return $output;
+}
